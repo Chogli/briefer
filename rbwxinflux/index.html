@@ -509,6 +509,26 @@
   .nfoot .ncopy:hover{color:#fff;background:#14181C}
   .area.expanded .abody.v-notes{min-height:320px}
 
+  /* on paper: the brief as a PDF */
+  .abody.v-paper{cursor:default!important}
+  .dl{display:flex;gap:18px;align-items:flex-start}
+  .dlcover{flex:none;width:118px;border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.12),0 10px 24px rgba(0,0,0,.6);transition:transform .15s ease,box-shadow .15s ease}
+  .dlcover img{display:block;width:100%;height:auto}
+  .dlcover:hover{transform:translateY(-2px);box-shadow:0 0 0 1.5px var(--amber),0 14px 28px rgba(0,0,0,.6)}
+  .dltext{min-width:0;flex:1}
+  .dlk{font-family:"Doto",monospace;font-weight:800;color:var(--amber);font-size:var(--t1);letter-spacing:.03em;margin:2px 0 2px}
+  .dlt{font-family:var(--disp);font-weight:600;font-size:var(--t4);letter-spacing:-.03em;line-height:1;margin:0 0 8px;color:#fff}
+  .dlm{font-size:var(--t2);line-height:1.5;color:var(--o2);margin:0 0 6px}
+  .dlv{font-size:var(--t1);color:var(--o3);margin:0 0 12px}
+  .dlbtns{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+  .dlget,.dlopen{display:inline-flex;align-items:center;font-size:var(--t2);font-weight:600;border-radius:8px;padding:8px 14px;text-decoration:none;white-space:nowrap}
+  .dlget{color:#0B0C0E;background:var(--amber)}
+  .dlget:hover{background:#FFB15A}
+  .dlopen{color:var(--o2);box-shadow:inset 0 0 0 1px #2A3036}
+  .dlopen:hover{color:#fff;background:#14181C}
+  .compact .dl{flex-direction:column;align-items:center;text-align:center}
+  .compact .dlbtns{justify-content:center}
+
   /* sound switch */
   .snd{width:28px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#C9CDD1;box-shadow:inset 0 0 0 1px #2A2E33}
   .snd:hover{color:#fff;background:#1B1E22}
@@ -867,7 +887,7 @@ const paintSnd=()=>{ sndBtn.classList.toggle("off",!SND.on); sndBtn.setAttribute
 sndBtn.addEventListener("click",e=>{ e.stopPropagation(); SND.on=!SND.on; paintSnd(); if(SND.on) SND.tick(); });
 paintSnd();
 /* small ticks for the controls around the device */
-document.addEventListener("click",e=>{ if(e.target.closest(".ahead,.amenu button,.qtabs button,.qn b,.tz button,.prog,.qbar,.aread,.ncopy,.copy")) SND.tick(); },true);
+document.addEventListener("click",e=>{ if(e.target.closest(".ahead,.amenu button,.qtabs button,.qn b,.tz button,.prog,.qbar,.aread,.ncopy,.copy,.dl a")) SND.tick(); },true);
 /* closing a card */
 new MutationObserver(()=>{ const now=big.classList.contains("on"); if(big._was&&!now) SND.close(); big._was=now; }).observe(big,{attributes:true,attributeFilter:["class"]});
 
@@ -924,8 +944,10 @@ const VIEWS={
   brief:{name:"Key thoughts", job:"The three thoughts that answer the big question"},
   row:{name:"The answer", job:"This question, answered in full"},
   detail:{name:"The detail", job:"Everything behind this box"},
-  notes:{name:"Notes", job:"Your own notes · type here"}
+  notes:{name:"Notes", job:"Your own notes · type here"},
+  paper:{name:"On paper", job:"Download the brief as a PDF · 3 pages"}
 };
+const PAPER={file:"/rbwxinflux/RBW-Systems-x-Influx-The-Brief.pdf", name:"RBW Systems x Influx - The Brief v3.pdf", cover:"/rbwxinflux/brief-cover.jpg", label:"v3 · 6 Nov 2026 · 3 pages · 2 MB"};
 let NOTES=""; try{ NOTES=localStorage.getItem("briefer-notes")||""; }catch(e){}
 const areas={L:{el:document.getElementById("areaL"),view:"aim"}, R:{el:document.getElementById("areaR"),view:"brief"}};
 let supportLine=null, justLine=null;
@@ -1000,6 +1022,9 @@ const VIEW_HTML={
   },
   notes:()=>`<textarea class="notes" placeholder="Type your notes here…" aria-label="Notes" spellcheck="true">${(NOTES||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")}</textarea>
     <div class="nfoot"><span class="nsaved">Saved in this browser</span><button class="ncopy">Copy</button></div>`,
+  paper:()=>`<div class="dl"><a class="dlcover" href="${PAPER.file}" target="_blank" rel="noopener" title="Open the PDF"><img src="${PAPER.cover}" alt="Cover of the brief: Guardian" width="640" height="905" loading="lazy"></a>
+    <div class="dltext"><p class="dlk">RBW SYSTEMS × INFLUX</p><p class="dlt">The Brief</p><p class="dlm">The Context and Over to You on three pages, for anyone who wants it on paper or in their inbox.</p><p class="dlv">${PAPER.label}</p>
+    <p class="dlbtns"><a class="dlget" href="${PAPER.file}" download="${PAPER.name}">Download the PDF</a><a class="dlopen" href="${PAPER.file}" target="_blank" rel="noopener">Open in a new tab</a></p></div></div>`,
   detail:()=>{
     if(!sel) return `<p class="empty">Hit a box to see everything behind it.</p>`;
     if(sel.p===1){ const d=ROWS2[sel.r].cells[sel.c];
@@ -1072,7 +1097,7 @@ function shrink(){
 }
 Object.entries(areas).forEach(([side,a])=>{
   a.el.querySelector(".aread").addEventListener("click",e=>{ e.stopPropagation(); closeMenus(); grow(side); });
-  a.el.querySelector(".abody").addEventListener("click",e=>{ if(e.target.closest("li.got,.copy,button,textarea,.nfoot")) return; e.stopPropagation(); closeMenus(); if(grown===side) shrink(); else grow(side); });
+  a.el.querySelector(".abody").addEventListener("click",e=>{ if(e.target.closest("li.got,.copy,button,textarea,.nfoot,a")) return; e.stopPropagation(); closeMenus(); if(grown===side) shrink(); else grow(side); });
   a.el.addEventListener("click",e=>{ if(grown===side) e.stopPropagation(); });
 });
 function showing(view){ return areas.L.view===view||areas.R.view===view; }
@@ -1349,7 +1374,7 @@ const TOUR=(()=>{
     {el:pad0, k:"Orange = got the gist", h:"Nice. Now hit it again.", p:"Once gives you the short answer. Twice gives you the lot.", wait:()=>big.classList.contains("on")},
     {el:()=>big, k:"Green = read it all", h:"That’s the full answer.", p:"Copy it, resize it, make the text bigger. When you’re done, close it with the ×.", wait:()=>!big.classList.contains("on")},
     {el:key0, k:"The rows", h:"Now hit Q1. Twice.", p:"Once picks the row. Twice shows how its six boxes add up to one answer.", wait:()=>big.classList.contains("on")&&big.classList.contains("rowcard")},
-    {el:()=>areas.R.el, k:"Where it lands", h:"Read all six and it lands here.", p:"Each row ends in a thought. The thoughts are the brief. Use the menu up top to swap what this screen shows, or keep notes."},
+    {el:()=>areas.R.el, k:"Where it lands", h:"Read all six and it lands here.", p:"Each row ends in a thought. The thoughts are the brief. Use the menu up top to swap what this screen shows, keep notes, or download the whole brief as a PDF."},
     {el:()=>document.getElementById("man"), k:"That’s it", h:"Off you go. Start with Q1.", p:"Lost? Hit <b>?</b> to run this again. The speaker turns the clicks off, if you’re that sort of person.", last:true}
   ];
   let i=-1, active=false, timer=null, sweep=null;
